@@ -40,7 +40,7 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 #app.log-mode>header{flex-shrink:0}
 #app.log-mode>.tabs{flex-shrink:0}
 #app.log-mode footer{display:none}
-#app.log-mode #tab-log{flex:1;min-height:0;grid-template-rows:auto auto minmax(0,1fr)}
+#app.log-mode #tab-log{flex:1;min-height:0;grid-template-rows:auto auto auto minmax(0,1fr)}
 #app.log-mode #tab-log .log-toolbar{margin-bottom:0}
 #app.log-mode #tab-log .reqlog-card{display:flex;flex-direction:column;min-height:0}
 #app.log-mode #tab-log .reqlog-card .t-wrap{flex:1;min-height:0}
@@ -136,14 +136,13 @@ tr:last-child td{border-bottom:none}
 .detail-toggle{color:var(--blue-deep);font-size:11.5px;padding:2px 6px;text-decoration:underline dotted}
 tr.detail-row td{background:var(--blue-bg);font-family:var(--mono);font-size:11px;color:var(--blue-deep);word-break:break-all}
 
-/* ---------- 统计 ---------- */
-.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.statbox{background:var(--blue-bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
-.statbox .l{font-size:10.5px;color:var(--sub);margin-bottom:2px;white-space:nowrap}
-.statbox .n{font-size:17px;font-family:var(--mono);line-height:1.25;white-space:nowrap}
-.statbox .n small{font-size:10px;color:var(--faint);font-family:var(--sans)}
-.statgrid .statbox:nth-child(5){grid-column:span 2}
-.statgrid .statbox:nth-child(6){grid-column:span 2}
+/* ---------- 统计(全宽横向指标带) ---------- */
+.statgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.statbox{background:var(--blue-bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.statbox .l{font-size:10px;color:var(--sub);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.statbox .n{font-size:15px;font-family:var(--mono);line-height:1.3;white-space:nowrap}
+.statbox .n small{font-size:9.5px;color:var(--faint);font-family:var(--sans)}
+@media (max-width:1100px){.statgrid{grid-template-columns:repeat(4,1fr)}.statgrid .statbox:nth-child(n+5){grid-column:span 2}}
 .statsec{font-size:11px;letter-spacing:2px;color:var(--faint);margin:2px 0 8px}
 
 /* ---------- 日志工具条 / 时间窗 ---------- */
@@ -155,17 +154,17 @@ tr.detail-row td{background:var(--blue-bg);font-family:var(--mono);font-size:11p
 .win-tabs button.on{background:var(--blue);color:#fff}
 .win-tabs button:hover:not(.on){color:var(--blue-deep)}
 
-/* ---------- 按模型统计(行式+比例条) ---------- */
+/* ---------- 按模型统计(全宽行式+比例条) ---------- */
 .model-stats{display:flex;flex-direction:column;max-height:238px;overflow:auto}
-.mstat-row{display:grid;grid-template-columns:minmax(0,1.35fr) 46px 42px minmax(40px,1fr) 66px;gap:8px;align-items:center;padding:4.5px 2px;font-size:11.5px;border-bottom:1px solid var(--line)}
+.mstat-head{display:grid;grid-template-columns:minmax(150px,1.7fr) 52px 56px 64px 64px 78px minmax(70px,1fr);gap:10px;padding:0 2px 5px;font-size:10px;letter-spacing:1px;color:var(--faint);border-bottom:1px solid var(--line-strong)}
+.mstat-head span:nth-child(2),.mstat-head span:nth-child(3),.mstat-head span:nth-child(4),.mstat-head span:nth-child(5),.mstat-head span:nth-child(6){text-align:right}
+.mstat-row{display:grid;grid-template-columns:minmax(150px,1.7fr) 52px 56px 64px 64px 78px minmax(70px,1fr);gap:10px;align-items:center;padding:3.5px 2px;font-size:11.5px;border-bottom:1px solid var(--line)}
 .mstat-row:last-child{border-bottom:none}
-.mstat-row .mname{font-family:var(--mono);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
-.mstat-row .mnum{font-family:var(--mono);font-size:11px;text-align:right}
+.mstat-row .mname{font-family:var(--mono);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.mstat-row .mnum{font-family:var(--mono);font-size:11px;text-align:right;white-space:nowrap}
 .mstat-bar{height:6px;border-radius:3px;background:var(--blue-bg);overflow:hidden}
 .mstat-bar i{display:block;height:100%;background:var(--blue);border-radius:3px;min-width:2px}
 .mstat-row.dim{opacity:.55}
-.mstat-head{display:grid;grid-template-columns:minmax(0,1.35fr) 46px 42px minmax(40px,1fr) 66px;gap:8px;padding:0 2px 5px;font-size:10px;letter-spacing:1px;color:var(--faint);border-bottom:1px solid var(--line-strong)}
-.mstat-head span:nth-child(2),.mstat-head span:nth-child(3),.mstat-head span:nth-child(5){text-align:right}
 
 /* ---------- 分页器 ---------- */
 .pager{display:flex;justify-content:center;align-items:center;gap:5px;padding-top:10px}
@@ -341,12 +340,12 @@ footer{margin-top:26px;color:var(--faint);font-size:11px;text-align:center;lette
       </div>
     </section>
 
-    <section class="card span-6">
-      <div class="eyebrow">用量统计</div>
+    <section class="card span-12">
+      <div class="eyebrow">用量统计 <span class="right hint" style="font-size:11px">随上方数据范围切换</span></div>
       <div class="statgrid" id="statGrid"></div>
     </section>
 
-    <section class="card span-6">
+    <section class="card span-12">
       <div class="eyebrow">按模型统计 <span class="right hint" style="font-size:11px">未请求显示 0 · 条形 = 请求量占比</span></div>
       <div class="model-stats" id="modelStatsList"></div>
     </section>
@@ -730,18 +729,19 @@ function renderModelStats(byModel){
   rows.sort(function(a,b){ return (b.st.count||0)-(a.st.count||0) || (a.name<b.name?-1:1); });
   var maxC=1;
   rows.forEach(function(r){ if((r.st.count||0)>maxC) maxC=r.st.count; });
-  var head='<div class="mstat-head"><span>模型</span><span>请求</span><span>成功率</span><span>占比</span><span>tokens 入/出</span></div>';
+  var head='<div class="mstat-head"><span>模型</span><span>请求</span><span>成功率</span><span>入tok</span><span>出tok</span><span>均延迟</span><span>占比</span></div>';
   var html=rows.map(function(r){
     var st=r.st||{}; var c=st.count||0;
     var pct=c?(c*100/maxC):0;
-    var sr=st.success_rate==null?(c?'--':'--'):(st.success_rate+'%');
-    if(c===0) sr='--';
+    var sr=(c&&st.success_rate!=null)?(st.success_rate+'%'):'--';
     return '<div class="mstat-row'+(c===0?' dim':'')+'">'
       +'<span class="mname" title="'+esc(r.name)+'">'+esc(r.name)+'</span>'
       +'<span class="mnum">'+c+'</span>'
       +'<span class="mnum">'+sr+'</span>'
+      +'<span class="mnum">'+(st.prompt_tokens||0)+'</span>'
+      +'<span class="mnum">'+(st.completion_tokens||0)+'</span>'
+      +'<span class="mnum">'+(st.avg_e2e_ms==null?'--':fmtDur(st.avg_e2e_ms))+'</span>'
       +'<span class="mstat-bar"><i style="width:'+pct+'%"></i></span>'
-      +'<span class="mnum">'+(st.prompt_tokens||0)+' / '+(st.completion_tokens||0)+'</span>'
       +'</div>';
   }).join('');
   $('#modelStatsList').innerHTML=head+html;
