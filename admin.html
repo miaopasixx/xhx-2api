@@ -45,6 +45,11 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 #app.log-mode #tab-log > .card:nth-child(2){flex-shrink:0}  /* 用量统计: 固定紧凑 */
 #app.log-mode #tab-log > .card:nth-child(3){flex-shrink:0}  /* 模型统计: 固定, 内部自适应 */
 #app.log-mode #tab-log .model-stats{max-height:none;overflow:visible}
+#app.log-mode #tab-log .reqlog-card{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#app.log-mode #tab-log .reqlog-card .eyebrow{flex-shrink:0}
+#app.log-mode #tab-log .reqlog-card .t-wrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
+#app.log-mode #tab-log .reqlog-card .t-wrap::-webkit-scrollbar{display:none}
+#app.log-mode #tab-log .pager{flex-shrink:0;padding-top:6px}
 @media (max-width:860px){#app.log-mode{height:auto;overflow:visible}}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .brand h1{font-size:21px;letter-spacing:1px;line-height:1.2}
@@ -127,7 +132,8 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}
 th{text-align:left;color:var(--faint);font-weight:500;font-size:11px;letter-spacing:1px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
-.t-wrap{overflow-x:auto;overflow-y:hidden}
+.t-wrap{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}
+.t-wrap::-webkit-scrollbar{display:none}
 .st-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;white-space:nowrap}
 .st-pill::before{content:"";width:7px;height:7px;border-radius:50%}
 .st-pill.ok{color:var(--ok)} .st-pill.ok::before{background:var(--ok)}
