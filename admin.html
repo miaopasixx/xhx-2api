@@ -125,12 +125,43 @@ tr:last-child td{border-bottom:none}
 tr.detail-row td{background:var(--blue-bg);font-family:var(--mono);font-size:11px;color:var(--blue-deep);word-break:break-all}
 
 /* ---------- 统计 ---------- */
-.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.statbox{background:var(--blue-bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
-.statbox .l{font-size:11px;color:var(--sub);margin-bottom:3px}
-.statbox .n{font-size:20px;font-family:var(--mono);line-height:1.2}
-.statbox .n small{font-size:11px;color:var(--faint);font-family:var(--sans)}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.statbox{background:var(--blue-bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.statbox .l{font-size:10.5px;color:var(--sub);margin-bottom:2px;white-space:nowrap}
+.statbox .n{font-size:17px;font-family:var(--mono);line-height:1.25;white-space:nowrap}
+.statbox .n small{font-size:10px;color:var(--faint);font-family:var(--sans)}
+.statgrid .statbox:nth-child(5){grid-column:span 2}
+.statgrid .statbox:nth-child(6){grid-column:span 2}
 .statsec{font-size:11px;letter-spacing:2px;color:var(--faint);margin:2px 0 8px}
+
+/* ---------- 日志工具条 / 时间窗 ---------- */
+.log-toolbar{padding:10px 16px}
+.log-toolbar-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.log-title{font-size:11px;letter-spacing:2.5px;color:var(--faint)}
+.win-tabs{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;padding:3px;gap:2px;background:var(--bg)}
+.win-tabs button{padding:4px 16px;border-radius:999px;font-size:12px;color:var(--sub)}
+.win-tabs button.on{background:var(--blue);color:#fff}
+.win-tabs button:hover:not(.on){color:var(--blue-deep)}
+
+/* ---------- 按模型统计(行式+比例条) ---------- */
+.model-stats{display:flex;flex-direction:column;max-height:238px;overflow:auto}
+.mstat-row{display:grid;grid-template-columns:minmax(0,1.35fr) 46px 42px minmax(40px,1fr) 66px;gap:8px;align-items:center;padding:4.5px 2px;font-size:11.5px;border-bottom:1px solid var(--line)}
+.mstat-row:last-child{border-bottom:none}
+.mstat-row .mname{font-family:var(--mono);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.mstat-row .mnum{font-family:var(--mono);font-size:11px;text-align:right}
+.mstat-bar{height:6px;border-radius:3px;background:var(--blue-bg);overflow:hidden}
+.mstat-bar i{display:block;height:100%;background:var(--blue);border-radius:3px;min-width:2px}
+.mstat-row.dim{opacity:.55}
+.mstat-head{display:grid;grid-template-columns:minmax(0,1.35fr) 46px 42px minmax(40px,1fr) 66px;gap:8px;padding:0 2px 5px;font-size:10px;letter-spacing:1px;color:var(--faint);border-bottom:1px solid var(--line-strong)}
+.mstat-head span:nth-child(2),.mstat-head span:nth-child(3),.mstat-head span:nth-child(5){text-align:right}
+
+/* ---------- 分页器 ---------- */
+.pager{display:flex;justify-content:center;align-items:center;gap:5px;padding-top:10px}
+.pager button{min-width:27px;height:26px;border-radius:6px;border:1px solid var(--line-strong);color:var(--sub);font-size:12px;font-family:var(--mono)}
+.pager button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.pager button:disabled{opacity:.35;cursor:not-allowed}
+.pager .pinfo{font-size:11px;color:var(--faint);margin-left:10px}
+.pager .pdots{color:var(--faint);font-size:11px;padding:0 1px}
 
 /* ---------- 模型 ---------- */
 .model-list{display:flex;flex-direction:column;gap:7px;max-height:270px;overflow:auto;margin-bottom:12px}
@@ -285,37 +316,38 @@ footer{margin-top:26px;color:var(--faint);font-size:11px;text-align:center;lette
 
   <!-- ============ TAB 2: 请求日志 ============ -->
   <main class="grid" id="tab-log" hidden>
-    <section class="card span-12">
-      <div class="eyebrow">用量统计 <span class="right hint" style="font-size:11px;color:var(--faint)">缓存命中上游不提供；非流式无首字延迟（TTFT 仅流式统计）</span></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">
-        <div>
-          <div class="statsec">今 日</div>
-          <div class="statgrid" id="statToday"></div>
-        </div>
-        <div style="border-left:1px solid var(--line);padding-left:18px">
-          <div class="statsec">近 7 天</div>
-          <div class="statgrid" id="statWeek"></div>
-        </div>
+    <section class="card span-12 log-toolbar">
+      <div class="log-toolbar-row">
+        <span class="log-title">数据范围</span>
+        <span class="win-tabs" id="winTabs">
+          <button data-win="today" class="on">今日</button>
+          <button data-win="week">近 7 天</button>
+          <button data-win="month">近 30 天</button>
+        </span>
+        <span class="hint" style="margin-left:auto;font-size:11px">缓存命中上游不提供 · 非流式无首字延迟</span>
+        <button class="btn btn-mini danger" id="clearLogBtn">清空日志</button>
       </div>
     </section>
 
-    <section class="card span-12">
-      <div class="eyebrow">按模型统计（近 7 天）</div>
-      <div class="t-wrap"><table>
-        <thead><tr><th>模型</th><th>请求数</th><th>成功率</th><th>输入 Tokens</th><th>输出 Tokens</th><th>平均 TTFT</th><th>平均端到端</th><th>平均吞吐</th></tr></thead>
-        <tbody id="modelStatsBody"></tbody>
-      </table></div>
+    <section class="card span-6">
+      <div class="eyebrow">用量统计</div>
+      <div class="statgrid" id="statGrid"></div>
+    </section>
+
+    <section class="card span-6">
+      <div class="eyebrow">按模型统计 <span class="right hint" style="font-size:11px">未请求显示 0 · 条形 = 请求量占比</span></div>
+      <div class="model-stats" id="modelStatsList"></div>
     </section>
 
     <section class="card span-12">
-      <div class="eyebrow">请求明细 <span class="right">
-        <span class="hint" id="reqTotal" style="font-size:11px;color:var(--faint)"></span>
-        <button class="btn btn-mini danger" id="clearLogBtn">清空日志</button>
-      </span></div>
+      <div class="eyebrow">请求明细
+        <span class="right"><span class="hint" id="reqTotal" style="font-size:11px"></span></span>
+      </div>
       <div class="t-wrap"><table>
         <thead><tr><th>时间</th><th>模型</th><th>密钥</th><th>状态</th><th>类型</th><th>输入</th><th>输出</th><th>TTFT</th><th>端到端</th><th>吞吐</th><th>结束原因</th></tr></thead>
         <tbody id="reqlogBody"></tbody>
       </table></div>
+      <div class="pager" id="pager"></div>
     </section>
   </main>
 
@@ -369,6 +401,8 @@ var $ = function(s){ return document.querySelector(s); };
 var key = localStorage.getItem('raccoon_admin_key') || '';
 var ov = null, reqlogs = [];
 var modelDraft = null, modelDirty = false, chartWin = 7;
+var statWin = 'today';   // 日志页全局时间窗: today / week / month
+var pageNo = 1, PAGE_SIZE = 8;
 
 /* ---------- 工具 ---------- */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
@@ -430,8 +464,9 @@ function loadAll(){
   }).catch(function(e){ if(e && e.message==='401') {} else toast('加载失败：'+(e.message||e), true); });
 }
 function loadReqlog(){
-  return api('/admin/api/reqlog?limit=150').then(function(d){
-    reqlogs=d.logs||[]; renderReqlog(); $('#reqTotal').textContent='共 '+ov.reqlog_total+' 条记录';
+  return api('/admin/api/reqlog?limit=300').then(function(d){
+    reqlogs=d.logs||[]; pageNo=1; renderReqlog();
+    $('#reqTotal').textContent='共 '+ov.reqlog_total+' 条 · 每页 '+PAGE_SIZE+' 条';
   }).catch(function(){});
 }
 
@@ -629,44 +664,68 @@ $('#modelSaveBtn').onclick=function(){
 function statBox(l,n,unit){
   return '<div class="statbox"><div class="l">'+esc(l)+'</div><div class="n">'+(n==null?'--':n)+(unit?'<small> '+esc(unit)+'</small>':'')+'</div></div>';
 }
+/* ---------- 用量统计 + 按模型统计(时间窗联动) ---------- */
 function renderStats(){
-  var s=ov.stats||{};
-  var draw=function(st){
-    if(!st) return '<div class="chart-empty">暂无数据</div>';
-    var boxes='';
-    boxes+=statBox('请求数',st.count,'次');
-    boxes+=statBox('成功率',st.success_rate==null?'--':st.success_rate,'%');
-    boxes+=statBox('输入 Tokens',st.prompt_tokens,'');
-    boxes+=statBox('输出 Tokens',st.completion_tokens,'');
-    boxes+=statBox('平均首字延迟',st.avg_ttft_ms==null?'--':fmtDur(st.avg_ttft_ms),'');
-    boxes+=statBox('平均端到端',st.avg_e2e_ms==null?'--':fmtDur(st.avg_e2e_ms),'');
-    boxes+=statBox('平均吞吐',st.avg_tps==null?'--':st.avg_tps,'tok/s');
-    return '<div class="statgrid">'+boxes+'</div>';
-  };
-  $('#statToday').innerHTML=draw(s.today);
-  $('#statWeek').innerHTML=draw(s.week);
-  var ms=s.by_model||[];
-  if(!ms.length){ $('#modelStatsBody').innerHTML='<tr><td colspan="8" class="chart-empty" style="padding:20px 0">近 7 天暂无请求记录</td></tr>'; return; }
-  var html='';
-  ms.forEach(function(m){
-    var st=m.stats||{};
-    html+='<tr><td class="num" style="font-size:11.5px">'+esc(m.model||'--')+'</td>'
-      +'<td class="num">'+st.count+'</td>'
-      +'<td class="num">'+(st.success_rate==null?'--':st.success_rate+'%')+'</td>'
-      +'<td class="num">'+st.prompt_tokens+'</td>'
-      +'<td class="num">'+st.completion_tokens+'</td>'
-      +'<td class="num">'+(st.avg_ttft_ms==null?'--':fmtDur(st.avg_ttft_ms))+'</td>'
-      +'<td class="num">'+(st.avg_e2e_ms==null?'--':fmtDur(st.avg_e2e_ms))+'</td>'
-      +'<td class="num">'+(st.avg_tps==null?'--':st.avg_tps)+'</td></tr>';
-  });
-  $('#modelStatsBody').innerHTML=html;
+  var s=(ov.stats&&ov.stats[statWin])||{};
+  var st=s.stats||{};
+  var boxes='';
+  boxes+=statBox('请求数',st.count==null?0:st.count,'次');
+  boxes+=statBox('成功率',st.success_rate==null?'--':st.success_rate,'%');
+  boxes+=statBox('输入 Tokens',st.prompt_tokens==null?0:st.prompt_tokens,'');
+  boxes+=statBox('输出 Tokens',st.completion_tokens==null?0:st.completion_tokens,'');
+  boxes+=statBox('平均首字延迟',st.avg_ttft_ms==null?'--':fmtDur(st.avg_ttft_ms),'');
+  boxes+=statBox('平均端到端',st.avg_e2e_ms==null?'--':fmtDur(st.avg_e2e_ms),'');
+  boxes+=statBox('平均吞吐',st.avg_tps==null?'--':st.avg_tps,'tok/s');
+  $('#statGrid').innerHTML='<div class="statgrid">'+boxes+'</div>';
+  renderModelStats(s.by_model||[]);
 }
+function renderModelStats(byModel){
+  // 全模型全集: 管理台模型表 ∪ 该窗口出现过的模型; 无请求的显示 0
+  var dataMap={};
+  byModel.forEach(function(m){ if(m.model) dataMap[m.model]=m.stats||{count:0}; });
+  var all=(ov.models||[]).slice();
+  Object.keys(dataMap).forEach(function(m){
+    if(all.indexOf(m)<0) all.push(m);
+  });
+  var rows=all.map(function(name){
+    var st=dataMap[name]||{count:0,prompt_tokens:0,completion_tokens:0};
+    return {name:name, st:st};
+  });
+  rows.sort(function(a,b){ return (b.st.count||0)-(a.st.count||0) || (a.name<b.name?-1:1); });
+  var maxC=1;
+  rows.forEach(function(r){ if((r.st.count||0)>maxC) maxC=r.st.count; });
+  var head='<div class="mstat-head"><span>模型</span><span>请求</span><span>成功率</span><span>占比</span><span>tokens 入/出</span></div>';
+  var html=rows.map(function(r){
+    var st=r.st||{}; var c=st.count||0;
+    var pct=c?(c*100/maxC):0;
+    var sr=st.success_rate==null?(c?'--':'--'):(st.success_rate+'%');
+    if(c===0) sr='--';
+    return '<div class="mstat-row'+(c===0?' dim':'')+'">'
+      +'<span class="mname" title="'+esc(r.name)+'">'+esc(r.name)+'</span>'
+      +'<span class="mnum">'+c+'</span>'
+      +'<span class="mnum">'+sr+'</span>'
+      +'<span class="mstat-bar"><i style="width:'+pct+'%"></i></span>'
+      +'<span class="mnum">'+(st.prompt_tokens||0)+' / '+(st.completion_tokens||0)+'</span>'
+      +'</div>';
+  }).join('');
+  $('#modelStatsList').innerHTML=head+html;
+}
+document.querySelectorAll('#winTabs button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('#winTabs button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on'); statWin=b.dataset.win; renderStats();
+  };
+});
 
-/* ---------- 请求明细 ---------- */
+/* ---------- 请求明细(分页) ---------- */
 function renderReqlog(){
-  if(!reqlogs.length){ $('#reqlogBody').innerHTML='<tr><td colspan="11" class="chart-empty" style="padding:20px 0">暂无请求记录 —— 渠道调用 /v1/chat/completions 后自动记录</td></tr>'; return; }
+  if(!reqlogs.length){ $('#reqlogBody').innerHTML='<tr><td colspan="11" class="chart-empty" style="padding:20px 0">暂无请求记录 —— 渠道调用 /v1/chat/completions 后自动记录</td></tr>'; $('#pager').innerHTML=''; return; }
+  var pages=Math.ceil(reqlogs.length/PAGE_SIZE);
+  if(pageNo>pages) pageNo=pages;
+  var start=(pageNo-1)*PAGE_SIZE;
+  var slice=reqlogs.slice(start,start+PAGE_SIZE);
   var html='';
-  reqlogs.forEach(function(l){
+  slice.forEach(function(l){
     html+='<tr>'
       +'<td class="num" style="font-size:11px">'+esc(fmtTsS(l.ts))+'</td>'
       +'<td class="num" style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(l.model)+'">'+esc(l.model||'--')+'</td>'
@@ -682,6 +741,20 @@ function renderReqlog(){
       +'</tr>';
   });
   $('#reqlogBody').innerHTML=html;
+  // 分页器(窗口化页码)
+  var ph='';
+  ph+='<button data-pg="'+(pageNo-1)+'"'+(pageNo<=1?' disabled':'')+'>‹</button>';
+  var from=Math.max(1,pageNo-2), to=Math.min(pages,from+4);
+  if(to-from<4) from=Math.max(1,to-4);
+  if(from>1) ph+='<button data-pg="1">1</button>'+(from>2?'<span class="pdots">…</span>':'');
+  for(var i=from;i<=to;i++) ph+='<button data-pg="'+i+'"'+(i===pageNo?' class="on"':'')+'>'+i+'</button>';
+  if(to<pages) ph+=(to<pages-1?'<span class="pdots">…</span>':'')+'<button data-pg="'+pages+'">'+pages+'</button>';
+  ph+='<button data-pg="'+(pageNo+1)+'"'+(pageNo>=pages?' disabled':'')+'>›</button>';
+  ph+='<span class="pinfo">第 '+pageNo+' / '+pages+' 页 · '+reqlogs.length+' 条</span>';
+  $('#pager').innerHTML=ph;
+  document.querySelectorAll('#pager [data-pg]').forEach(function(b){
+    b.onclick=function(){ var p=+b.dataset.pg; if(p>=1&&p<=pages){ pageNo=p; renderReqlog(); } };
+  });
 }
 $('#clearLogBtn').onclick=function(){
   if(!confirm('确定清空全部请求日志？此操作不可恢复。')) return;

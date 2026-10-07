@@ -269,8 +269,7 @@ function bjDayStart(offsetDays) {
 
 async function getStats(env) {
   const db = env.raccoon_db;
-  const today0 = bjDayStart(0);
-  const week0 = bjDayStart(6);
+  const windows = { today: bjDayStart(0), week: bjDayStart(6), month: bjDayStart(29) };
   const agg = function (rows) {
     if (!rows) return null;
     const r = rows;
@@ -286,17 +285,30 @@ async function getStats(env) {
       avg_tps: r.atps ? +(+r.atps).toFixed(1) : null,
     };
   };
-  const sel = 'SELECT COUNT(*) c, SUM(ok) ok, SUM(prompt_tokens) pt, SUM(completion_tokens) ct, AVG(ttft_ms) attft, AVG(e2e_ms) ae2e, AVG(tps) atps FROM reqlog WHERE ts >= ?';
-  const today = await db.prepare(sel).bind(today0).first();
-  const week = await db.prepare(sel).bind(week0).first();
-  const byModel = await db.prepare(
-    'SELECT model, COUNT(*) c, SUM(ok) ok, SUM(prompt_tokens) pt, SUM(completion_tokens) ct, AVG(ttft_ms) attft, AVG(e2e_ms) ae2e, AVG(tps) atps FROM reqlog WHERE ts >= ? GROUP BY model ORDER BY c DESC LIMIT 20'
-  ).bind(week0).all();
-  return {
-    today: agg(today),
-    week: agg(week),
-    by_model: (byModel.results || []).map(function (m) { return { model: m.model, stats: agg(m) }; }),
-  };
+  const out = {};
+  const names = ['today', 'week', 'month'];
+  for (let i = 0; i < names.length; i++) {
+    const w = names[i];
+    const since = windows[w];
+    const tot = await db.prepare(
+      'SELECT COUNT(*) c, SUM(ok) ok, SUM(prompt_tokens) pt, SUM(completion_tokens) ct, AVG(ttft_ms) attft, AVG(e2e_ms) ae2e, AVG(tps) atps FROM reqlog WHERE ts >= ?'
+    ).bind(since).first();
+    // 全模型统计: models 表 LEFT JOIN 请求记录, 无请求的模型 count=0
+    const bm = await db.prepare(
+      'SELECT m.name AS model, COUNT(r.id) AS c, COALESCE(SUM(r.ok),0) AS ok, COALESCE(SUM(r.prompt_tokens),0) AS pt, COALESCE(SUM(r.completion_tokens),0) AS ct, AVG(r.ttft_ms) AS attft, AVG(r.e2e_ms) AS ae2e, AVG(r.tps) AS atps ' +
+      'FROM models m LEFT JOIN reqlog r ON r.model = m.name AND r.ts >= ? ' +
+      'GROUP BY m.name ORDER BY c DESC, m.name'
+    ).bind(since).all();
+    // 追加: 该窗口内被请求过、但不在 models 表里的模型(渠道手填的)
+    const extra = await db.prepare(
+      "SELECT model, COUNT(*) AS c, SUM(ok) AS ok, SUM(prompt_tokens) AS pt, SUM(completion_tokens) AS ct, AVG(ttft_ms) AS attft, AVG(e2e_ms) AS ae2e, AVG(tps) AS atps " +
+      "FROM reqlog WHERE ts >= ? AND model IS NOT NULL AND model != '' AND model NOT IN (SELECT name FROM models) GROUP BY model"
+    ).bind(since).all();
+    const rows = (bm.results || []).map(function (m) { return { model: m.model, stats: agg(m) }; })
+      .concat((extra.results || []).map(function (m) { return { model: m.model, stats: agg(m) }; }));
+    out[w] = { stats: agg(tot), by_model: rows };
+  }
+  return out;
 }
 
 /* ================= 主入口 ================= */
