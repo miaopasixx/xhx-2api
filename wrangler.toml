@@ -1,0 +1,26 @@
+name = "raccoon-gateway"
+main = "raccoon-worker.js"
+compatibility_date = "2025-01-01"
+
+# 将 admin.html 作为文本模块导入(import ADMIN_HTML from './admin.html')
+rules = [
+  { type = "Text", globs = ["**/*.html"], fallthrough = true }
+]
+
+# 自定义域名(CF自动创建DNS记录和SSL证书)
+# 前提: mpsxx.eu.org 域名的DNS托管在本CF账户
+routes = [
+  { pattern = "xhx.mpsxx.eu.org", custom_domain = true }
+]
+
+# D1 数据库: 存 access_token/refresh_token (自动滚动续期)
+# 免费版10万次写入/天, 远超KV的1000次限制
+[[d1_databases]]
+binding = "raccoon_db"
+database_name = "raccoon-db"
+database_id = "8e11a25e-8bf6-4344-8000-3d8fd675d7db"
+
+# 每天北京时间 07:00 保活: 发一条真实对话, 滚动refresh_token + 验证链路
+# (UTC 23:00 = 北京 07:00; 失败时若配置了 NOTIFY_URL 会发webhook告警)
+[triggers]
+crons = ["0 23 * * *"]

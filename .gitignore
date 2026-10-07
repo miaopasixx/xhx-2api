@@ -1,0 +1,9 @@
+# 敏感凭证文件(切勿上传)
+raccoon-auth.json
+raccoon-key.txt
+raccoon-cloud-auth.json
+raccoon-cloud-deploy.json
+*.log
+.temp/
+node_modules/
+.wrangler/
