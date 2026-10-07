@@ -51,9 +51,8 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 #app.ov-mode .ov-history{grid-column:1/3;grid-row:2;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 #app.ov-mode .ov-history .ov-hist-wrap{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
 #app.ov-mode .ov-history .ov-hist-wrap::-webkit-scrollbar{display:none}
-#app.ov-mode .ov-models{grid-column:3;grid-row:2;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-#app.ov-mode .ov-models #modelsPanel{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
-#app.ov-mode .ov-models #modelsPanel::-webkit-scrollbar{display:none}
+#app.ov-mode .ov-models{grid-column:3;grid-row:2;display:flex;flex-direction:column;min-height:0;overflow:hidden;align-self:start}
+#app.ov-mode .ov-models #modelsPanel{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 @media (max-width:860px){#app.ov-mode{height:auto;overflow:visible}#app.ov-mode #tab-ov{grid-template-columns:1fr;grid-template-rows:auto}}
 /* 概览页紧凑 */
 .ov-grid{gap:12px}
@@ -63,7 +62,6 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 .ov-hist-wrap table{font-size:11.5px}
 .ov-hist-wrap th{padding:4px 6px}
 .ov-hist-wrap td{padding:5px 6px}
-.ov-models .model-list{max-height:none;overflow:visible}
 #app.log-mode>header{flex-shrink:0}
 #app.log-mode>.tabs{flex-shrink:0}
 #app.log-mode footer{display:none}
@@ -207,15 +205,17 @@ tr.detail-row td{background:var(--blue-bg);font-family:var(--mono);font-size:11p
 .pager .pinfo{font-size:11px;color:var(--faint);margin-left:10px}
 .pager .pdots{color:var(--faint);font-size:11px;padding:0 1px}
 
-/* ---------- 模型 ---------- */
-.model-list{display:flex;flex-direction:column;gap:7px;max-height:270px;overflow:auto;margin-bottom:12px}
-.model-item{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 11px;gap:8px}
-.model-item .name{font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.model-add{display:flex;gap:8px;margin-bottom:10px}
-.model-add input{flex:1;border:1px solid var(--line-strong);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:12px;min-width:0}
+/* ---------- 模型（紧凑 chip 标签式） ---------- */
+.model-chips{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;height:50px;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;margin-bottom:6px}
+.model-chips::-webkit-scrollbar{display:none}
+.model-chip{display:inline-flex;align-items:center;gap:4px;max-width:100%;border:1px solid var(--line-strong);border-radius:999px;padding:1px 4px 1px 9px;background:var(--blue-bg);font-family:var(--mono);font-size:11px;color:var(--blue-deep)}
+.model-chip .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.model-chip .del{cursor:pointer;color:var(--sub);font-size:11px;line-height:1;padding:1px 3px;border-radius:50%;flex-shrink:0}
+.model-chip .del:hover{color:var(--bad);background:rgba(222,91,78,.12)}
+.model-add{display:flex;gap:6px;flex-shrink:0}
+.model-add input{flex:1;min-width:0;border:1px solid var(--line-strong);border-radius:999px;padding:4px 12px;font-family:var(--mono);font-size:12px}
 .model-add input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,148,228,.15)}
-.model-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.model-foot .hint{font-size:11px;color:var(--faint)}
+.model-add .btn{border-radius:999px;padding:5px 12px}
 .dirty{background:var(--blue-deep) !important}
 
 /* ---------- 密钥管理 ---------- */
@@ -327,20 +327,13 @@ footer{margin-top:26px;color:var(--faint);font-size:11px;text-align:center;lette
     </section>
 
     <section class="card span-12 ov-models">
-      <div class="eyebrow" style="cursor:pointer;user-select:none" id="modelsToggle">模型管理 <span style="letter-spacing:0;color:var(--faint);font-size:11px">（增删改保存后生效到 /v1/models）</span><span class="right hint" style="font-size:11px" id="modelsHint">展开 ▾</span></div>
-      <div id="modelsPanel" hidden>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">
-          <div><div class="model-list" id="modelList"></div></div>
-          <div style="border-left:1px solid var(--line);padding-left:18px">
-            <div class="model-add">
-              <input id="modelInput" placeholder="输入模型名" spellcheck="false">
-              <button class="btn btn-ghost" id="modelAddBtn">添加</button>
-            </div>
-            <div class="model-foot">
-              <span class="hint" id="modelDirty"></span>
-              <button class="btn btn-primary" id="modelSaveBtn" disabled>保存</button>
-            </div>
-          </div>
+      <div class="eyebrow">模型管理 <span style="letter-spacing:0;color:var(--faint);font-size:11px">增删改保存后生效到 /v1/models</span></div>
+      <div id="modelsPanel">
+        <div class="model-chips" id="modelList"></div>
+        <div class="model-add">
+          <input id="modelInput" placeholder="输入模型名，回车添加" spellcheck="false">
+          <button class="btn btn-ghost" id="modelAddBtn">添加</button>
+          <button class="btn btn-primary" id="modelSaveBtn" disabled>保存</button>
         </div>
       </div>
     </section>
@@ -679,7 +672,7 @@ function renderHistory(){
   });
 }
 
-/* ---------- 模型管理 ---------- */
+/* ---------- 模型管理（紧凑 chip 标签式） ---------- */
 function renderModels(){
   modelDraft=(ov.models||[]).slice();
   modelDirty=false; syncModelUI();
@@ -687,19 +680,15 @@ function renderModels(){
 function syncModelUI(){
   var html='';
   modelDraft.forEach(function(m,i){
-    html+='<div class="model-item"><span class="name">'+esc(m)+'</span><button class="btn btn-mini danger" data-del="'+i+'">删除</button></div>';
+    html+='<span class="model-chip"><span class="name" title="'+esc(m)+'">'+esc(m)+'</span><span class="del" data-del="'+i+'" title="删除">×</span></span>';
   });
-  $('#modelList').innerHTML=html||'<div class="chart-empty">列表为空 —— 渠道将返回内置默认模型</div>';
+  $('#modelList').innerHTML=html||'<span class="hint" style="font-size:11px;color:var(--faint)">列表为空 —— 渠道将返回内置默认模型</span>';
   document.querySelectorAll('[data-del]').forEach(function(b){
     b.onclick=function(){ modelDraft.splice(+b.dataset.del,1); modelDirty=true; syncModelUI(); };
   });
   $('#modelSaveBtn').disabled=!modelDirty;
   $('#modelSaveBtn').classList.toggle('dirty',modelDirty);
-  $('#modelDirty').textContent=modelDirty?('已修改 '+modelDraft.length+' 项，未保存'):'';
-}
-$('#modelsToggle').onclick=function(){
-  var p=$('#modelsPanel'); var h=$('#modelsHint');
-  p.hidden=!p.hidden; h.textContent=p.hidden?'展开 ▾':'收起 ▴';
+  $('#modelSaveBtn').textContent=modelDirty?('保存 '+modelDraft.length+' 项'):'保存';
 }
 $('#modelAddBtn').onclick=function(){
   var v=$('#modelInput').value.trim();
@@ -712,10 +701,10 @@ $('#modelSaveBtn').onclick=function(){
   var b=this; b.disabled=true; b.textContent='保存中…';
   api('/admin/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({models:modelDraft})})
     .then(function(r){
-      b.textContent='保存模型列表';
+      b.textContent='保存';
       if(r.ok){ modelDirty=false; toast('已保存，/v1/models 立即生效'); loadAll(); }
       else { toast('保存失败：'+(r.error||''),true); b.disabled=false; }
-    }).catch(function(){ b.textContent='保存模型列表'; });
+    }).catch(function(){ b.textContent='保存'; });
 };
 
 /* ---------- 用量统计 ---------- */
