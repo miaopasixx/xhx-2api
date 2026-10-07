@@ -16,6 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 [hidden]{display:none !important}
 html{-webkit-text-size-adjust:100%}
+html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 button{font-family:var(--sans);cursor:pointer;border:none;background:none;font-size:13px}
@@ -34,6 +35,17 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 
 /* ---------- 布局 ---------- */
 #app{max-width:1060px;margin:0 auto;padding:24px 20px 60px}
+/* 日志页弹性单屏: 锁定视口高度, 页面永不滚动 */
+#app.log-mode{height:100vh;padding-bottom:14px;overflow:hidden;display:flex;flex-direction:column}
+#app.log-mode>header{flex-shrink:0}
+#app.log-mode>.tabs{flex-shrink:0}
+#app.log-mode footer{display:none}
+#app.log-mode #tab-log{flex:1;min-height:0;grid-template-rows:auto auto minmax(0,1fr)}
+#app.log-mode #tab-log .log-toolbar{margin-bottom:0}
+#app.log-mode #tab-log .reqlog-card{display:flex;flex-direction:column;min-height:0}
+#app.log-mode #tab-log .reqlog-card .t-wrap{flex:1;min-height:0}
+#app.log-mode #tab-log .model-stats{max-height:238px}
+@media (max-width:860px){#app.log-mode{height:auto;overflow:visible}}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .brand h1{font-size:21px;letter-spacing:1px;line-height:1.2}
 .brand .sub{color:var(--sub);font-size:12px;letter-spacing:2px;margin-top:2px}
@@ -339,7 +351,7 @@ footer{margin-top:26px;color:var(--faint);font-size:11px;text-align:center;lette
       <div class="model-stats" id="modelStatsList"></div>
     </section>
 
-    <section class="card span-12">
+    <section class="card span-12 reqlog-card">
       <div class="eyebrow">请求明细
         <span class="right"><span class="hint" id="reqTotal" style="font-size:11px"></span></span>
       </div>
@@ -453,8 +465,32 @@ document.querySelectorAll('.tabs button').forEach(function(b){
     $('#tab-'+currentTab).hidden=false;
     $('#tab-ov-pulse').hidden = currentTab!=='ov';
     ['ov','log','keys'].forEach(function(t){ if(t!==currentTab) $('#tab-'+t).hidden=true; });
-    if(currentTab==='log') loadReqlog();
+    $('#app').classList.toggle('log-mode', currentTab==='log');
+    if(currentTab==='log'){ requestAnimationFrame(refitPage); loadReqlog(); }
   };
+});
+
+/* ---------- 日志页单屏自适应: 按可用高度动态计算每页条数 ---------- */
+function computePageSize(){
+  var wrap=document.querySelector('#tab-log .reqlog-card .t-wrap');
+  if(!wrap || !wrap.clientHeight) return PAGE_SIZE;
+  var head=wrap.querySelector('thead');
+  var headH=head?head.offsetHeight:30;
+  var rowH=32;
+  var first=wrap.querySelector('tbody tr');
+  if(first && first.offsetHeight) rowH=Math.max(26, first.offsetHeight);
+  var n=Math.floor((wrap.clientHeight-headH-6)/rowH);
+  return Math.max(3, Math.min(20, n));
+}
+function refitPage(){
+  var n=computePageSize();
+  if(n!==PAGE_SIZE){ PAGE_SIZE=n; pageNo=1; renderReqlog(); }
+  $('#reqTotal').textContent='共 '+(ov?ov.reqlog_total:0)+' 条';
+}
+var _rt=null;
+window.addEventListener('resize', function(){
+  if(currentTab!=='log') return;
+  clearTimeout(_rt); _rt=setTimeout(refitPage, 200);
 });
 
 /* ---------- 数据加载 ---------- */
@@ -466,7 +502,7 @@ function loadAll(){
 function loadReqlog(){
   return api('/admin/api/reqlog?limit=300').then(function(d){
     reqlogs=d.logs||[]; pageNo=1; renderReqlog();
-    $('#reqTotal').textContent='共 '+ov.reqlog_total+' 条 · 每页 '+PAGE_SIZE+' 条';
+    $('#reqTotal').textContent='共 '+ov.reqlog_total+' 条';
   }).catch(function(){});
 }
 
