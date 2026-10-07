@@ -41,10 +41,10 @@ input,select{font-family:var(--sans);font-size:13px;outline:none}
 #app.log-mode>.tabs{flex-shrink:0}
 #app.log-mode footer{display:none}
 #app.log-mode #tab-log{flex:1;min-height:0;grid-template-rows:auto auto auto minmax(0,1fr)}
-#app.log-mode #tab-log .log-toolbar{margin-bottom:0}
-#app.log-mode #tab-log .reqlog-card{display:flex;flex-direction:column;min-height:0}
-#app.log-mode #tab-log .reqlog-card .t-wrap{flex:1;min-height:0}
-#app.log-mode #tab-log .model-stats{max-height:238px}
+#app.log-mode #tab-log .log-toolbar{margin-bottom:0;flex-shrink:0}
+#app.log-mode #tab-log > .card:nth-child(2){flex-shrink:0}  /* 用量统计: 固定紧凑 */
+#app.log-mode #tab-log > .card:nth-child(3){flex-shrink:0}  /* 模型统计: 固定, 内部自适应 */
+#app.log-mode #tab-log .model-stats{max-height:none;overflow:visible}
 @media (max-width:860px){#app.log-mode{height:auto;overflow:visible}}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .brand h1{font-size:21px;letter-spacing:1px;line-height:1.2}
@@ -127,7 +127,7 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}
 th{text-align:left;color:var(--faint);font-weight:500;font-size:11px;letter-spacing:1px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
-.t-wrap{overflow-x:auto}
+.t-wrap{overflow-x:auto;overflow-y:hidden}
 .st-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;white-space:nowrap}
 .st-pill::before{content:"";width:7px;height:7px;border-radius:50%}
 .st-pill.ok{color:var(--ok)} .st-pill.ok::before{background:var(--ok)}
@@ -158,7 +158,7 @@ tr.detail-row td{background:var(--blue-bg);font-family:var(--mono);font-size:11p
 .model-stats{display:flex;flex-direction:column;max-height:238px;overflow:auto}
 .mstat-head{display:grid;grid-template-columns:minmax(150px,1.7fr) 52px 56px 64px 64px 78px minmax(70px,1fr);gap:10px;padding:0 2px 5px;font-size:10px;letter-spacing:1px;color:var(--faint);border-bottom:1px solid var(--line-strong)}
 .mstat-head span:nth-child(2),.mstat-head span:nth-child(3),.mstat-head span:nth-child(4),.mstat-head span:nth-child(5),.mstat-head span:nth-child(6){text-align:right}
-.mstat-row{display:grid;grid-template-columns:minmax(150px,1.7fr) 52px 56px 64px 64px 78px minmax(70px,1fr);gap:10px;align-items:center;padding:3.5px 2px;font-size:11.5px;border-bottom:1px solid var(--line)}
+.mstat-row{display:grid;grid-template-columns:minmax(150px,1.7fr) 52px 56px 64px 64px 78px minmax(70px,1fr);gap:10px;align-items:center;padding:2.5px 2px;font-size:11.5px;border-bottom:1px solid var(--line)}
 .mstat-row:last-child{border-bottom:none}
 .mstat-row .mname{font-family:var(--mono);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
 .mstat-row .mnum{font-family:var(--mono);font-size:11px;text-align:right;white-space:nowrap}
@@ -711,7 +711,7 @@ function renderStats(){
   boxes+=statBox('平均首字延迟',st.avg_ttft_ms==null?'--':fmtDur(st.avg_ttft_ms),'');
   boxes+=statBox('平均端到端',st.avg_e2e_ms==null?'--':fmtDur(st.avg_e2e_ms),'');
   boxes+=statBox('平均吞吐',st.avg_tps==null?'--':st.avg_tps,'tok/s');
-  $('#statGrid').innerHTML='<div class="statgrid">'+boxes+'</div>';
+  $('#statGrid').innerHTML=boxes;
   renderModelStats(s.by_model||[]);
 }
 function renderModelStats(byModel){
